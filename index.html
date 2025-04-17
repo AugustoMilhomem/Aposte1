@@ -10,23 +10,26 @@
       text-align: center;
       background: #111;
       color: #fff;
-      padding: 20px;
+      padding: 30px;
     }
     input, button {
-      padding: 12px;
+      padding: 10px;
       margin: 10px;
       font-size: 1rem;
+      border-radius: 5px;
+    }
+    input {
       display: block;
       margin-left: auto;
       margin-right: auto;
       width: 80%;
-      max-width: 400px;
+      max-width: 300px;
     }
     button {
+      font-size: 1.2rem;
       background-color: #28a745;
       color: white;
       border: none;
-      border-radius: 5px;
       cursor: pointer;
       transition: background-color 0.3s;
     }
@@ -49,18 +52,15 @@
       margin-top: 20px;
       font-size: 1rem;
     }
-    .regras {
+    .regras, .pix-simulador {
       background: #222;
       padding: 15px;
       border-radius: 10px;
       margin-bottom: 20px;
-      font-size: 1rem;
-    }
-    .pix-simulador {
-      background: #333;
-      padding: 15px;
-      border-radius: 10px;
-      margin: 20px 0;
+      width: 90%;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
     }
     .whatsapp-btn {
       margin-top: 10px;
@@ -69,24 +69,15 @@
     .whatsapp-btn:hover {
       background-color: #1ebe5b;
     }
-    @media (max-width: 600px) {
-      body {
-        padding: 15px;
-      }
+    @media screen and (max-width: 600px) {
       input, button {
-        width: 90%;
-      }
-      .regras {
-        font-size: 0.9rem;
-      }
-      .sorteando {
-        font-size: 1.5rem;
+        font-size: 1rem;
       }
     }
   </style>
 </head>
 <body>
-  <h1>🎲 GANHE 5X MAIS!</h1>
+  <h1>🎯 GANHE 5X MAIS!</h1>
 
   <div class="regras">
     <h3>📜 Como Jogar</h3>
@@ -102,7 +93,7 @@
   <input type="number" id="numero" min="1" max="10" placeholder="Seu número">
 
   <label for="valor">Escolha o valor da aposta (R$):</label>
-  <input type="number" id="valor" placeholder="Valor da aposta (R$)" min="1">
+  <input type="number" id="valor" placeholder="Valor da aposta (R$)">
 
   <div class="pix-simulador">
     <p>🔁 Simule o envio do PIX clicando abaixo:</p>
@@ -119,6 +110,7 @@
     let contadorApostas = 0;
     let pagamentoConfirmado = false;
     let pixJaSimulado = false;
+    let historicoVitorias = 0;
 
     function confirmarPix() {
       if (pixJaSimulado) return;
@@ -141,6 +133,12 @@
       }, 2000);
     }
 
+    function calcularChance(valorAposta) {
+      if (valorAposta >= 20) return 0.04; // 4% de chance
+      if (valorAposta >= 5) return 0.08; // 8% de chance
+      return 0.15; // 15% de chance para apostas entre 1 e 4.99
+    }
+
     function apostar() {
       if (!pagamentoConfirmado) return;
 
@@ -148,8 +146,6 @@
       const valorAposta = parseFloat(document.getElementById('valor').value);
       const resultadoDiv = document.getElementById('resultado');
       const sorteandoDiv = document.getElementById('sorteando');
-
-      contadorApostas++;
 
       resultadoDiv.innerHTML = '';
       sorteandoDiv.innerHTML = '🔄 Sorteando...';
@@ -161,14 +157,16 @@
         animacao++;
         if (animacao > 15) {
           clearInterval(intervalo);
+          contadorApostas++;
 
-          // Calcula a chance de ganhar com base no valor da aposta
-          const probabilidadePerda = Math.min(1, valorAposta / 100); // Aumenta a chance de perder conforme o valor da aposta
-          const sorteio = Math.random();
+          const chance = calcularChance(valorAposta);
+          const ganhou = Math.random() < chance && historicoVitorias < 1;
 
           let numeroSorteado;
-          if (sorteio <= (1 - probabilidadePerda)) {
+
+          if (ganhou) {
             numeroSorteado = numeroEscolhido;
+            historicoVitorias++;
           } else {
             do {
               numeroSorteado = Math.floor(Math.random() * 10) + 1;
@@ -193,4 +191,5 @@
   </script>
 </body>
 </html>
+
 
