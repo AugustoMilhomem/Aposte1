@@ -12,26 +12,28 @@
       color: #fff;
       padding: 30px;
     }
-    input, button {
+    input, select {
       padding: 10px;
       margin: 10px;
       font-size: 1rem;
-      border-radius: 5px;
-    }
-    input {
       display: block;
       margin-left: auto;
       margin-right: auto;
-      width: 80%;
+      width: 90%;
       max-width: 300px;
     }
     button {
+      padding: 12px 20px;
       font-size: 1.2rem;
       background-color: #28a745;
       color: white;
       border: none;
+      border-radius: 5px;
       cursor: pointer;
       transition: background-color 0.3s;
+      width: 90%;
+      max-width: 300px;
+      margin: 10px auto;
     }
     button:hover {
       background-color: #218838;
@@ -52,15 +54,17 @@
       margin-top: 20px;
       font-size: 1rem;
     }
-    .regras, .pix-simulador {
+    .regras {
       background: #222;
       padding: 15px;
       border-radius: 10px;
       margin-bottom: 20px;
-      width: 90%;
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
+    }
+    .pix-simulador {
+      background: #333;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 20px 0;
     }
     .whatsapp-btn {
       margin-top: 10px;
@@ -69,31 +73,31 @@
     .whatsapp-btn:hover {
       background-color: #1ebe5b;
     }
-    @media screen and (max-width: 600px) {
-      input, button {
-        font-size: 1rem;
-      }
-    }
   </style>
 </head>
 <body>
-  <h1>🎯 GANHE 5X MAIS!</h1>
+  <h1>🎲 GANHE 5X MAIS!</h1>
 
   <div class="regras">
     <h3>📜 Como Jogar</h3>
-    <p>1. Escolha um número de 1 a 10.</p>
-    <p>2. Digite o valor da aposta em reais (mínimo R$1,00).</p>
+    <p>1. Escolha um número entre 3, 6 ou 9.</p>
+    <p>2. Digite o valor da aposta (mínimo R$1,00).</p>
     <p>3. Simule o envio do PIX. Você só pode fazer uma aposta por vez!</p>
     <p>4. Clique em "Apostar Agora" quando estiver liberado.</p>
     <p>🎯 Se o número sorteado for igual ao escolhido, você ganha 5x o valor apostado!</p>
-    <p>💸 Caso vença, clique no botão para receber via WhatsApp.</p>
+    <p>💸 Caso vença, clique no botão para receber via WhatsApp com a prova gerada pelo app.</p>
   </div>
 
-  <label for="numero">Escolha um número de 1 a 10:</label>
-  <input type="number" id="numero" min="1" max="10" placeholder="Seu número">
+  <label for="numero">Escolha seu número (3, 6 ou 9):</label>
+  <select id="numero">
+    <option value="">Selecione</option>
+    <option value="3">3</option>
+    <option value="6">6</option>
+    <option value="9">9</option>
+  </select>
 
-  <label for="valor">Escolha o valor da aposta (R$):</label>
-  <input type="number" id="valor" placeholder="Valor da aposta (R$)">
+  <label for="valor">Valor da Aposta (mínimo R$1,00):</label>
+  <input type="number" id="valor" placeholder="R$">
 
   <div class="pix-simulador">
     <p>🔁 Simule o envio do PIX clicando abaixo:</p>
@@ -107,10 +111,8 @@
   <div class="resultado" id="resultado"></div>
 
   <script>
-    let contadorApostas = 0;
     let pagamentoConfirmado = false;
     let pixJaSimulado = false;
-    let historicoVitorias = 0;
 
     function confirmarPix() {
       if (pixJaSimulado) return;
@@ -118,7 +120,7 @@
       const valorAposta = parseFloat(document.getElementById('valor').value);
       const numeroEscolhido = parseInt(document.getElementById('numero').value);
 
-      if (isNaN(valorAposta) || valorAposta < 1 || isNaN(numeroEscolhido) || numeroEscolhido < 1 || numeroEscolhido > 10) {
+      if (isNaN(valorAposta) || valorAposta < 1 || ![3,6,9].includes(numeroEscolhido)) {
         document.getElementById('status-pagamento').innerText = '⛔ Preencha corretamente o número e valor (mínimo R$1,00).';
         return;
       }
@@ -133,10 +135,12 @@
       }, 2000);
     }
 
-    function calcularChance(valorAposta) {
-      if (valorAposta >= 20) return 0.04; // 4% de chance
-      if (valorAposta >= 5) return 0.08; // 8% de chance
-      return 0.15; // 15% de chance para apostas entre 1 e 4.99
+    function dificuldade(valor) {
+      if (valor <= 5) return 0.2;
+      if (valor <= 10) return 0.3;
+      if (valor <= 20) return 0.4;
+      if (valor <= 50) return 0.5;
+      return 0.6;
     }
 
     function apostar() {
@@ -150,46 +154,44 @@
       resultadoDiv.innerHTML = '';
       sorteandoDiv.innerHTML = '🔄 Sorteando...';
 
-      let animacao = 0;
-      let intervalo = setInterval(() => {
-        const numero = Math.floor(Math.random() * 10) + 1;
-        sorteandoDiv.innerHTML = `🔢 ${numero}`;
-        animacao++;
-        if (animacao > 15) {
-          clearInterval(intervalo);
-          contadorApostas++;
+      setTimeout(() => {
+        const chancePerder = dificuldade(valorAposta);
+        const vaiGanhar = Math.random() > chancePerder;
 
-          const chance = calcularChance(valorAposta);
-          const ganhou = Math.random() < chance && historicoVitorias < 1;
+        let numeroSorteado = vaiGanhar ? numeroEscolhido : [3, 6, 9].filter(n => n !== numeroEscolhido)[Math.floor(Math.random() * 2)];
 
-          let numeroSorteado;
+        sorteandoDiv.innerHTML = `🎯 Número sorteado: ${numeroSorteado}`;
 
-          if (ganhou) {
-            numeroSorteado = numeroEscolhido;
-            historicoVitorias++;
-          } else {
-            do {
-              numeroSorteado = Math.floor(Math.random() * 10) + 1;
-            } while (numeroSorteado === numeroEscolhido);
-          }
-
-          sorteandoDiv.innerHTML = `🎯 Número sorteado: ${numeroSorteado}`;
-
-          if (numeroEscolhido === numeroSorteado) {
-            const premio = valorAposta * 5;
-            resultadoDiv.innerHTML = `🎉 Parabéns! Você ganhou R$${premio.toFixed(2)}!` +
-              '<br><a href="https://wa.me/seunumerowhatsapp" target="_blank"><button class="whatsapp-btn">💸 Receber via WhatsApp</button></a>';
-          } else {
-            resultadoDiv.innerHTML = `😢 Que pena! Você perdeu R$${valorAposta.toFixed(2)}.`;
-          }
-
-          document.getElementById('botaoApostar').disabled = true;
-          pagamentoConfirmado = false;
+        if (vaiGanhar) {
+          const premio = valorAposta * 5;
+          const codigo = Math.random().toString(36).substr(2, 8).toUpperCase();
+          const hora = new Date().toLocaleString();
+          resultadoDiv.innerHTML = `🎉 Parabéns! Você ganhou R$${premio.toFixed(2)}!` +
+            `<br>🔐 Código da vitória: <b>${codigo}</b><br>🕒 Horário: ${hora}` +
+            `<br><button class="whatsapp-btn" onclick="enviarWhatsApp('${codigo}', '${hora}')">💸 Receber via WhatsApp</button>`;
+        } else {
+          resultadoDiv.innerHTML = `😢 Que pena! Você perdeu R$${valorAposta.toFixed(2)}.` +
+            '<br><button onclick="window.location.reload()">🔁 Jogar Novamente</button>';
         }
-      }, 100);
+
+        document.getElementById('botaoApostar').disabled = true;
+        pagamentoConfirmado = false;
+      }, 2000);
+    }
+
+    function enviarWhatsApp(codigo, horario) {
+      const numero = prompt("Digite seu número de WhatsApp com DDD (somente números):");
+      if (!numero || !/^\d{10,13}$/.test(numero)) {
+        alert("Número inválido. Tente novamente.");
+        return;
+      }
+      const mensagem = `Ganhei o jogo! Código: ${codigo} Horário: ${horario}`;
+      const url = `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
+      window.open(url, '_blank');
     }
   </script>
 </body>
 </html>
+
 
 
